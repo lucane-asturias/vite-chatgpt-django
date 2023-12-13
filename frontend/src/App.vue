@@ -1,30 +1,27 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+<script lang="ts" setup>
+  import { ref, onErrorCaptured } from 'vue'
+
+  const error = ref(false)
+  const errorMsgFromErrorCaptured = ref('Something went wrong. Check the logs!')
+
+  onErrorCaptured((err, _vm, _info) => {
+    console.error(err)
+    error.value = true
+
+    // setTimeout(() => error.value = false, 10000)
+    return false
+  })
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
-</template>
+  <main>
+    <router-view v-slot="{ Component }">
+      <div v-if="error"
+        class="bg-red-200 text-red-700 p-4 rounded-lg border-1 border-red-700" 
+        v-text="errorMsgFromErrorCaptured"
+      />
+      <component :is="Component" />
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
+    </router-view>
+  </main>
+</template>

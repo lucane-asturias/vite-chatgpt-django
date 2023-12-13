@@ -13,6 +13,9 @@ class Chat(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ('created_at',)
+
     def modified_at_formatted(self):
         return timesince(self.created_at)
 
@@ -22,6 +25,9 @@ class ChatMessage(models.Model):
     message = models.TextField()
     response = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('created_at',)
 
     def modified_at_formatted(self):
         return timesince(self.created_at)

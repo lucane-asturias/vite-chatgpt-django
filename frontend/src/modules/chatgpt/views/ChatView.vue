@@ -1,13 +1,16 @@
 <script lang="ts" setup>
-  import { ref, onMounted, computed } from 'vue'
-  import { useRoute } from 'vue-router'
+  import { ref, onMounted, computed, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import ChatLayout from '../layout/ChatLayout.vue'
 
   import { useChatStore } from '../store/chatStore'
 
   const route = useRoute()
+  const router = useRouter()
 
   const messageInput = ref<string>('')
+  const toggleError = ref<string>('')
+  const isChatFound = ref(true)
 
   const chatStore = useChatStore()
 
@@ -34,7 +37,7 @@
   const onMessageSubmition = async () => {
     if (messageInput.value.length === 0) return
     await chatStore.onMessageSubmition(messageInput.value)
-    setTimeout(() => resetForm(), 8000)
+    setTimeout(() => resetForm(), 5000)
   }
 
   const deleteChat = async (chatId) => await chatStore.deleteChat(chatId)
@@ -45,13 +48,24 @@
   })
 
   const shouldRenderChildView = computed(() => route.name === 'chat-item')
-  
+
   onMounted(async () => {
     const detailsData = await chatStore.getChatDetails()
     if (detailsData) chatStore.chats = detailsData
 
     resetForm()
   })
+
+  watch(() => route.params.id, () => {
+    if (route.params.id) {
+      const isChatInStore = chatStore.inChat(route.params.id)
+      chatStore.isChatFound = true
+      return
+    }
+
+    setTimeout(() => router.push({ name: 'chat' }), 5000)
+    chatStore.isChatFound = false
+  }, { immediate: true })
 </script>
 
 <template>
@@ -60,8 +74,8 @@
     <!-- New Chat and Chat List -->
     <template #aside>
        <!-- Responsive Navbar with Hamburger Icon -->
-      <div class="sm:hidden p-4">
-        <button @click="toggleChatList" class="text-white p-2">
+      <div class="sm:hidden p-2">
+        <button @click="toggleChatList" class="text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -206,6 +220,12 @@
                   </svg>
                 </div>
                 <div class="text-2xl font-medium mb-20">How can I help you today?</div>
+              </div>
+            </template>
+
+            <template v-else-if="!chatStore.isChatFound">
+              <div class="p-2 m-5 text-white bg-red-500 tracking-wide rounded">
+                Unable to load conversation [{{ route.params.id }}]
               </div>
             </template>
 

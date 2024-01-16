@@ -14,6 +14,7 @@ export const useChatStore = defineStore('chatStore', () => {
   const chats = ref<ChatType[]>()
   const chatInSubmission = ref<boolean>(false)
   const showSkeleton = ref<boolean>(false)
+  const isChatFound = ref(true)
 
   // Actions ============================
 
@@ -51,14 +52,12 @@ export const useChatStore = defineStore('chatStore', () => {
           chat_id: chatId
         }) as { data: ChatMessagesType }
 
-        console.log('newMessageObj', newMessageObj)
-
         chatStore.getChatById(chatId).messages.push(newMessageObj)
       } catch (error) { 
         console.error(error)
       }
     } else {
-      alert('A chat with this ID does not exist.')
+      alert(`A chat with this ID does not exist.`)
       router.push({ name: "chat" })
     }
   }
@@ -68,13 +67,16 @@ export const useChatStore = defineStore('chatStore', () => {
 
     try {
       chatInSubmission.value = true
-      await axios.post(`/api/chat/edit/${chatId}/`, {
+      const { data } = await axios.post(`/api/chat/edit/${chatId}/`, {
         new_message: newMessage,
       })
+
+      console.log('edited data --> ', data)
 
       const chat = getChatById(chatId)
       const chatMessage = chat.messages.find(message => message.id === messageId)
       chat.message = newMessage
+      chat.response = data.response
     } catch (error) {
       console.error(error)
     } finally {
@@ -100,7 +102,7 @@ export const useChatStore = defineStore('chatStore', () => {
   // Getters ============================
 
   function inChat(chatId: string) {
-    if (!chatId) return
+    if (!chatId && chatId.length !== 0) return false
     return chats.value?.some(chat => chat.id === chatId)
   }
 
@@ -119,7 +121,7 @@ export const useChatStore = defineStore('chatStore', () => {
   }
 
   return { 
-    chats, chatInSubmission, 
+    chats, chatInSubmission, isChatFound,
     onMessageSubmition, addMessageInChat, deleteChat,
     inChat, getChatById, getChatDetails
   }

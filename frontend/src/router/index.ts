@@ -20,13 +20,13 @@ export const routes: Array<RouteRecordRaw> = [
     path: '/chat',
     name: 'chat',
     component: ChatView,
-    // meta: { requiresAuth: true },
+    meta: { requiresAuth: true },
     children: [
       {
         path: ':id',
         name: 'chat-item',
         component: ChatItemView,
-        // meta: { requiresAuth: true },
+        meta: { requiresAuth: true },
       },
     ],
   },
@@ -45,19 +45,19 @@ const router = createRouter({
   }
 })
 
-// router.beforeEach((to, from, next) => {
-//   if (!to.meta.requiresAuth) {
-//     next()
-//     return
-//   }
+router.beforeEach((to, from, next) => {
+  if (!to.meta.requiresAuth) {
+    next()
+    return
+  }
 
-//   const authStore = useUserStore()
+  const authStore = useUserStore()
   
-//   if (authStore.isAuthenticated) {
-//     next()
-//   } else {
-//     next({ name: 'auth', query: { mode: 'login' } })
-//   }
-// })
+  if (authStore.isAuthenticated) {
+    next()
+  } else {
+    next({ name: 'auth', query: { mode: 'login' } })
+  }
+})
 
 export default router

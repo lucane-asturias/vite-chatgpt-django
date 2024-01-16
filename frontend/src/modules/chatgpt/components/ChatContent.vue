@@ -1,12 +1,13 @@
-<script setup>
+<script lang="ts" setup>
   import { computed, ref } from 'vue'
   import { useRoute } from 'vue-router'
   import { useChatStore } from '../store/chatStore'
+  import type { ChatMessagesType } from '../interfaces/ChatType'
 
   const route = useRoute()
   const chatStore = useChatStore()
 
-  const props = defineProps({ content: Object })
+  const props = defineProps<{ content: ChatType }>()
 
   const user = ref(true)
   const showCheckSVG = ref(false)
@@ -28,13 +29,22 @@
   }
 
   const startEditing = () => isEditing.value = true
-  const cancelEditing = () => isEditing.value = false
+  const cancelEditing = () => {
+    editedMessage.value = props.content.message
+    isEditing.value = false
+  }
   const toggleSubmission = () => editInSubmission.value = !editInSubmission.value
 
   const saveEditedChatMessage = async () => {
     if (props.content.message === editedMessage.value) return
+
     toggleSubmission()
-    await chatStore.editChatMessage(route.params.id)
+  
+    await chatStore.editChatMessage(
+      route.params.id, 
+      props.content.message.id, 
+      editedMessage.value
+    )
     cancelEditing()
     toggleSubmission()
   }
@@ -66,14 +76,21 @@
         <div class="message pl-1.5" v-if="!isEditing" v-text="content.message" />
         <!-- Edit mode -->
         <div v-else>
-          <div class="flex flex-row justify-end mt-2 ml-5">
-            <input v-model="editedMessage" :value="editedMessage" class="border rounded px-2 py-1 mr-2" />
-            <button 
-              class="bg-green-500 text-white px-2 py-1 mr-2"
-              @click="saveEditedChatMessage"
-              :disabled="editInSubmission"
-            >Save</button>
-            <button @click="cancelEditing" class="bg-red-500 text-white px-2 py-1">Cancel</button>
+          <div class="flex flex-row my-2">
+            <textarea 
+              rows="4" cols="63"
+              class="border-0 rounded px-3 ml-2 focus:outline-none"
+              v-model="editedMessage"
+              style="background-color: #485261;"
+            />
+            <div class="ml-auto flex flex-col">
+              <button @click="cancelEditing" class="bg-red-500 text-white mb-3 px-2 py-1 mr-2">Cancel</button>
+              <button 
+                class="bg-green-600 text-white mb-4 px-2 py-1 mr-2"
+                @click="saveEditedChatMessage"
+                :disabled="editInSubmission"
+              >Save</button>
+            </div>
           </div>
         </div>
       </section>

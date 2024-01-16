@@ -15,7 +15,7 @@
 
     if (chatStore.chats?.length > 0) {
       const chat = chatStore.getChatById(route.params.id)
-      // if (!chat.messages) return // to-do: make something user friendly
+      if (!chat?.messages) return chatStore.isChatFound = false
       return chat.messages
     }
   })
